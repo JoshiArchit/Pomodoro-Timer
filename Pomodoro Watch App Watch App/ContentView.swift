@@ -11,64 +11,13 @@ struct ContentView: View {
     @StateObject private var manager = TimerManager()
     
     var body: some View {
-        VStack(spacing: 8) {
-            
-            // Phase label
-            Text(phaseLabel)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            
-            // Time remaining
-            Text(timeString)
-                .font(.system(size: 42, weight: .bold, design: .monospaced))
-            
-            // Session count
-            Text("Session \(manager.state.sessionsCompleted + 1)")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            
-            // Controls
-            HStack(spacing: 16) {
-                Button(action: { manager.skip() }) {
-                    Image(systemName: "forward.fill")
-                }
-                .buttonStyle(.plain)
-                
-                Button(action: toggleTimer) {
-                    Image(systemName: manager.state.isRunning ? "pause.fill" : "play.fill")
-                }
-                .buttonStyle(.plain)
-                
-                Button(action: { manager.reset() }) {
-                    Image(systemName: "arrow.counterclockwise")
-                }
-                .buttonStyle(.plain)
-            }
-            .font(.title3)
+        TabView {
+            TimerView(manager: manager)
+            SettingsView(settings: $manager.state.settings)
         }
-    }
-    
-    // MARK: - Helpers
-    
-    private func toggleTimer() {
-        manager.state.isRunning ? manager.pause() : manager.start()
-    }
-    
-    private var phaseLabel: String {
-        switch manager.state.phase {
-            case .focus:      return "Focus"
-            case .shortBreak: return "Short Break"
-            case .longBreak:  return "Long Break"
-        }
-    }
-    
-    private var timeString: String {
-        let minutes = Int(manager.state.timeRemaining) / 60
-        let seconds = Int(manager.state.timeRemaining) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+        .tabViewStyle(.verticalPage)
     }
 }
-
 #Preview {
     ContentView()
 }
