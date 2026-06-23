@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		211EFBBD2FEA123D0019FA29 /* Pomodoro Watch App Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 211EFBB32FEA123C0019FA29 /* Pomodoro Watch App Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		211EFBBD2FEA123D0019FA29 /* PomodoroApp.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 211EFBB32FEA123C0019FA29 /* PomodoroApp.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,7 +27,7 @@
 			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
 			dstSubfolderSpec = 16;
 			files = (
-				211EFBBD2FEA123D0019FA29 /* Pomodoro Watch App Watch App.app in Embed Watch Content */,
+				211EFBBD2FEA123D0019FA29 /* PomodoroApp.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -36,7 +36,7 @@
 
 /* Begin PBXFileReference section */
 		211EFBA12FEA11910019FA29 /* PomodoroTimer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PomodoroTimer.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		211EFBB32FEA123C0019FA29 /* Pomodoro Watch App Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Pomodoro Watch App Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		211EFBB32FEA123C0019FA29 /* PomodoroApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PomodoroApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -45,9 +45,9 @@
 			path = PomodoroTimer;
 			sourceTree = "<group>";
 		};
-		211EFBB42FEA123C0019FA29 /* Pomodoro Watch App Watch App */ = {
+		211EFBB42FEA123C0019FA29 /* Pomodoro Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Pomodoro Watch App Watch App";
+			path = "Pomodoro Watch App";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -74,7 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				211EFBA32FEA11910019FA29 /* PomodoroTimer */,
-				211EFBB42FEA123C0019FA29 /* Pomodoro Watch App Watch App */,
+				211EFBB42FEA123C0019FA29 /* Pomodoro Watch App */,
 				211EFBA22FEA11910019FA29 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -83,7 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				211EFBA12FEA11910019FA29 /* PomodoroTimer.app */,
-				211EFBB32FEA123C0019FA29 /* Pomodoro Watch App Watch App.app */,
+				211EFBB32FEA123C0019FA29 /* PomodoroApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -115,9 +115,9 @@
 			productReference = 211EFBA12FEA11910019FA29 /* PomodoroTimer.app */;
 			productType = "com.apple.product-type.application";
 		};
-		211EFBB22FEA123C0019FA29 /* Pomodoro Watch App Watch App */ = {
+		211EFBB22FEA123C0019FA29 /* PomodoroApp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 211EFBBE2FEA123D0019FA29 /* Build configuration list for PBXNativeTarget "Pomodoro Watch App Watch App" */;
+			buildConfigurationList = 211EFBBE2FEA123D0019FA29 /* Build configuration list for PBXNativeTarget "PomodoroApp" */;
 			buildPhases = (
 				211EFBAF2FEA123C0019FA29 /* Sources */,
 				211EFBB02FEA123C0019FA29 /* Frameworks */,
@@ -128,13 +128,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				211EFBB42FEA123C0019FA29 /* Pomodoro Watch App Watch App */,
+				211EFBB42FEA123C0019FA29 /* Pomodoro Watch App */,
 			);
-			name = "Pomodoro Watch App Watch App";
+			name = PomodoroApp;
 			packageProductDependencies = (
 			);
 			productName = "Pomodoro Watch App Watch App";
-			productReference = 211EFBB32FEA123C0019FA29 /* Pomodoro Watch App Watch App.app */;
+			productReference = 211EFBB32FEA123C0019FA29 /* PomodoroApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -170,7 +170,7 @@
 			projectRoot = "";
 			targets = (
 				211EFBA02FEA11910019FA29 /* PomodoroTimer */,
-				211EFBB22FEA123C0019FA29 /* Pomodoro Watch App Watch App */,
+				211EFBB22FEA123C0019FA29 /* PomodoroApp */,
 			);
 		};
 /* End PBXProject section */
@@ -212,7 +212,7 @@
 /* Begin PBXTargetDependency section */
 		211EFBBC2FEA123D0019FA29 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 211EFBB22FEA123C0019FA29 /* Pomodoro Watch App Watch App */;
+			target = 211EFBB22FEA123C0019FA29 /* PomodoroApp */;
 			targetProxy = 211EFBBB2FEA123D0019FA29 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -414,7 +414,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Pomodoro-Watch-App-Watch-App-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Pomodoro Watch App";
+				INFOPLIST_KEY_CFBundleDisplayName = Pomodoro;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.archit2904.PomodoroTimer;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -448,7 +448,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Pomodoro-Watch-App-Watch-App-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Pomodoro Watch App";
+				INFOPLIST_KEY_CFBundleDisplayName = Pomodoro;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.archit2904.PomodoroTimer;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -492,7 +492,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		211EFBBE2FEA123D0019FA29 /* Build configuration list for PBXNativeTarget "Pomodoro Watch App Watch App" */ = {
+		211EFBBE2FEA123D0019FA29 /* Build configuration list for PBXNativeTarget "PomodoroApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				211EFBBF2FEA123D0019FA29 /* Debug */,

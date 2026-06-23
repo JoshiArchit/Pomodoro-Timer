@@ -9,7 +9,7 @@ import SwiftUI
 import UserNotifications
 
 @main
-struct PomodoroApp: App {
+struct PomodoroWatchApp: App {
     
     init() {
         requestNotificationPermission()
