@@ -1,14 +1,9 @@
-//
-//  TimerView.swift
-//  Pomodoro Watch App Watch App
-//
-//  Created by Archit Joshi on 6/22/26.
-//
-
 import SwiftUI
 
 struct TimerView: View {
     @ObservedObject var manager: TimerManager
+    @State private var showingAlert = false
+    @State private var completedPhase: Phase = .focus
     
     var body: some View {
         VStack(spacing: 8) {
@@ -19,7 +14,7 @@ struct TimerView: View {
             Text(timeString)
                 .font(.system(size: 42, weight: .bold, design: .monospaced))
             
-            Text("Session \(manager.state.sessionsCompleted + 1)")
+            Text(sessionLabel)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             
@@ -41,6 +36,15 @@ struct TimerView: View {
             }
             .font(.title3)
         }
+        .alert(phaseCompleteTitle, isPresented: $showingAlert) {
+            Button("OK") { }
+        } message: {
+            Text(phaseCompleteMessage)
+        }
+        .onChange(of: manager.state.phase) { oldPhase, newPhase in
+            completedPhase = oldPhase
+            showingAlert = true
+        }
     }
     
     // MARK: - Helpers
@@ -51,9 +55,9 @@ struct TimerView: View {
     
     private var phaseLabel: String {
         switch manager.state.phase {
-        case .focus:      return "Focus"
-        case .shortBreak: return "Short Break"
-        case .longBreak:  return "Long Break"
+        case .focus:                  return "Focus"
+        case .shortBreak:             return "Short Break"
+        case .longBreak:              return "Long Break"
         }
     }
     
@@ -62,8 +66,33 @@ struct TimerView: View {
         let seconds = Int(manager.state.timeRemaining) % 60
         return String(format: "%02d:%02d", minutes, seconds)
     }
+    
+    private var sessionLabel: String {
+        switch manager.state.phase {
+            case .focus:
+                return "Session \(manager.state.sessionsCompleted + 1)"
+            case .shortBreak, .longBreak:
+            return "Session \(manager.state.sessionsCompleted) complete"
+        }
+    }
+    
+    private var phaseCompleteTitle: String {
+        switch completedPhase {
+            case .focus:                  return "Break Time!"
+            case .shortBreak, .longBreak: return "Focus Time!"
+        }
+    }
+    
+    private var phaseCompleteMessage: String {
+        switch completedPhase {
+            case .focus:      return "Time for a break 🎉"
+            case .shortBreak: return "Ready to focus? 🍅"
+            case .longBreak:  return "Long break over — let's go!"
+        }
+    }
 }
 
 #Preview {
-    TimerView(manager: TimerManager())
+    let manager = TimerManager()
+    return TimerView(manager: manager)
 }

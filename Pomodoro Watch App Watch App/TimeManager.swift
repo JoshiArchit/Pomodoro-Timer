@@ -8,6 +8,7 @@
 import Foundation
 import WatchKit
 import Combine
+import UserNotifications
 
 class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate {
     
@@ -82,6 +83,29 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
                                 didInvalidateWith reason: WKExtendedRuntimeSessionInvalidationReason,
                                 error: Error?) {
         print("Extended session invalidated: \(reason)")
+    }
+    
+    // MARK: - Notifications
+
+    private func scheduleNotification(for phase: Phase) {
+        let content = UNMutableNotificationContent()
+        content.sound = .default
+
+        switch phase {
+        case .focus:
+            content.title = "Focus Complete 🍅"
+            content.body = "Time for a break!"
+        case .shortBreak:
+            content.title = "Break Over"
+            content.body = "Ready to focus again?"
+        case .longBreak:
+            content.title = "Long Break Over"
+            content.body = "Ready for another round?"
+        }
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request)
     }
 }
 
