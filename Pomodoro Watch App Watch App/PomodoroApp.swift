@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct Pomodoro_Watch_App_Watch_AppApp: App {
+struct PomodoroApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
