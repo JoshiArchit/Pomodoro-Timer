@@ -6,35 +6,44 @@ struct TimerView: View {
     @State private var completedPhase: Phase = .focus
     
     var body: some View {
-        VStack(spacing: 8) {
-            Text(phaseLabel)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            
-            Text(timeString)
-                .font(.system(size: 42, weight: .bold, design: .monospaced))
-            
-            Text(sessionLabel)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            
-            HStack(spacing: 16) {
-                Button(action: { manager.skip() }) {
-                    Image(systemName: "forward.fill")
-                }
-                .buttonStyle(.plain)
+        GeometryReader { geometry in
+            ZStack {
+                ProgressRing(progress: progress, color: phaseColor)
+                    .frame(width: geometry.size.width - 5, height: geometry.size.width - 5)
+                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                 
-                Button(action: toggleTimer) {
-                    Image(systemName: manager.state.isRunning ? "pause.fill" : "play.fill")
+                VStack(spacing: 8) {
+                    Text(phaseLabel)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    Text(timeString)
+                        .font(.system(size: 42, weight: .bold, design: .monospaced))
+                    
+                    Text(sessionLabel)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    
+                    HStack(spacing: 16) {
+                        Button(action: { manager.skip() }) {
+                            Image(systemName: "forward.fill")
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Button(action: toggleTimer) {
+                            Image(systemName: manager.state.isRunning ? "pause.fill" : "play.fill")
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Button(action: { manager.reset() }) {
+                            Image(systemName: "arrow.counterclockwise")
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .font(.title3)
                 }
-                .buttonStyle(.plain)
-                
-                Button(action: { manager.reset() }) {
-                    Image(systemName: "arrow.counterclockwise")
-                }
-                .buttonStyle(.plain)
+                .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
             }
-            .font(.title3)
         }
         .alert(phaseCompleteTitle, isPresented: $showingAlert) {
             Button("OK") { }
@@ -88,6 +97,20 @@ struct TimerView: View {
             case .focus:      return "Time for a break 🎉"
             case .shortBreak: return "Ready to focus? 🍅"
             case .longBreak:  return "Long break over — let's go!"
+        }
+    }
+    
+    private var progress: Double {
+        let total = manager.state.totalDuration()
+        let remaining = manager.state.timeRemaining
+        return remaining / total
+    }
+
+    private var phaseColor: Color {
+        switch manager.state.phase {
+        case .focus:      return .red
+        case .shortBreak: return .green
+        case .longBreak:  return .blue
         }
     }
 }
