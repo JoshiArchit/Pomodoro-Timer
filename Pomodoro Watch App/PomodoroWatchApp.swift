@@ -9,15 +9,14 @@ import SwiftUI
 import UserNotifications
 
 @main
-struct PomodoroWatchApp: App {
-    
+struct PomodoroWatchApp: App {    
     init() {
         requestNotificationPermission()
     }
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
     }
     
