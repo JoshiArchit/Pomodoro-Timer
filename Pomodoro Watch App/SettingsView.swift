@@ -48,6 +48,13 @@ struct SettingsView: View {
                     step: 1,
                     range: 1...8
                 )
+                
+                // Reset to default settings
+                Button("Reset to Defaults") {
+                    settings = PomodoroSettings()
+                }
+                .foregroundStyle(.red)
+                .padding(.top, 8)
             }
             .padding()
         }

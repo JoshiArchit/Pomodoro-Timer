@@ -16,29 +16,35 @@ struct TimerView: View {
                     Text(phaseLabel)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("phaseLabel")
                     
                     Text(timeString)
                         .font(.system(size: 42, weight: .bold, design: .monospaced))
+                        .accessibilityIdentifier("timerLabel")
                     
                     Text(sessionLabel)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("sessionLabel")
                     
                     HStack(spacing: 16) {
                         Button(action: { manager.skip() }) {
                             Image(systemName: "forward.fill")
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier("skipButton")
                         
                         Button(action: toggleTimer) {
                             Image(systemName: manager.state.isRunning ? "pause.fill" : "play.fill")
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier("playPauseButton")
                         
                         Button(action: { manager.reset() }) {
                             Image(systemName: "arrow.counterclockwise")
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier("resetButton")
                     }
                     .font(.title3)
                 }

@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "211EFBB22FEA123C0019FA29"
-               BuildableName = "PomodoroApp.app"
-               BlueprintName = "PomodoroApp"
+               BuildableName = "PomodoroWatchApp.app"
+               BlueprintName = "PomodoroWatchApp"
                ReferencedContainer = "container:PomodoroTimer.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -43,6 +43,30 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
+      <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "2153B9532FEB56AF0026290F"
+               BuildableName = "PomodoroWatchAppTests.xctest"
+               BlueprintName = "PomodoroWatchAppTests"
+               ReferencedContainer = "container:PomodoroTimer.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "2153B9602FEB56F20026290F"
+               BuildableName = "PomodoroWatchAppUITests.xctest"
+               BlueprintName = "PomodoroWatchAppUITests"
+               ReferencedContainer = "container:PomodoroTimer.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -60,8 +84,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "211EFBB22FEA123C0019FA29"
-            BuildableName = "PomodoroApp.app"
-            BlueprintName = "PomodoroApp"
+            BuildableName = "PomodoroWatchApp.app"
+            BlueprintName = "PomodoroWatchApp"
             ReferencedContainer = "container:PomodoroTimer.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -77,8 +101,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "211EFBB22FEA123C0019FA29"
-            BuildableName = "PomodoroApp.app"
-            BlueprintName = "PomodoroApp"
+            BuildableName = "PomodoroWatchApp.app"
+            BlueprintName = "PomodoroWatchApp"
             ReferencedContainer = "container:PomodoroTimer.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

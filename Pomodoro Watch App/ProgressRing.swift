@@ -22,7 +22,7 @@ struct ProgressRing: View {
             
             // Progress arc
             Circle()
-                .trim(from: 0, to: progress)
+                .trim(from: 1 - progress, to: 1)
                 .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90)) // start from top
                 .animation(.linear(duration: 1), value: progress)
