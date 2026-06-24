@@ -23,6 +23,7 @@ struct SplashView: View {
                 .foregroundStyle(.secondary)
         }
         .transition(.opacity)
+        .accessibilityIdentifier("splashView")
     }
 }
 

@@ -8,34 +8,76 @@
 import XCTest
 
 final class PomodoroWatchAppUITests: XCTestCase {
-
+    
+    var app: XCUIApplication!
+    
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
-    @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
+        app = XCUIApplication()
         app.launch()
-
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // XCUIAutomation Documentation
-        // https://developer.apple.com/documentation/xcuiautomation
     }
-
+    
+    override func tearDownWithError() throws {
+        app = nil
+    }
+    
+    // MARK: - Launch
+    @MainActor
+    func test_launch_transitionsToTimerView() {
+        let timerLabel = app.staticTexts["timerLabel"]
+        XCTAssertTrue(timerLabel.waitForExistence(timeout: 3))
+    }
+    
+    // MARK: - Timer Controls
+    
+    @MainActor
+    func test_playButton_tapped_showsPauseButton() {
+        let playPauseButton = app.buttons["playPauseButton"]
+        XCTAssertTrue(playPauseButton.waitForExistence(timeout: 3))
+        playPauseButton.tap()
+        XCTAssertTrue(playPauseButton.exists)
+    }
+    
+    @MainActor
+    func test_resetButton_tapped_timerShowsFullDuration() {
+        let timerLabel = app.staticTexts["timerLabel"]
+        XCTAssertTrue(timerLabel.waitForExistence(timeout: 3))
+        app.buttons["playPauseButton"].tap()
+        sleep(2)
+        app.buttons["resetButton"].tap()
+        XCTAssertEqual(timerLabel.label, "25:00")
+    }
+    
+    @MainActor
+    func test_skipButton_tapped_phaseChanges() {
+        let phaseLabel = app.staticTexts["phaseLabel"]
+        XCTAssertTrue(phaseLabel.waitForExistence(timeout: 3))
+        XCTAssertEqual(phaseLabel.label, "Focus")
+        app.buttons["skipButton"].tap()
+        XCTAssertEqual(phaseLabel.label, "Short Break")
+    }
+    
+    // MARK: - Session Label
+    
+    @MainActor
+    func test_initialSessionLabel_showsSession1() {
+        let sessionLabel = app.staticTexts["sessionLabel"]
+        XCTAssertTrue(sessionLabel.waitForExistence(timeout: 3))
+        XCTAssertEqual(sessionLabel.label, "Session 1")
+    }
+    
+    @MainActor
+    func test_skipFromFocus_sessionLabelShowsComplete() {
+        let sessionLabel = app.staticTexts["sessionLabel"]
+        XCTAssertTrue(sessionLabel.waitForExistence(timeout: 3))
+        app.buttons["skipButton"].tap()
+        XCTAssertEqual(sessionLabel.label, "Session 1 complete")
+    }
+    
+    // MARK: - Performance
+    
     @MainActor
     func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {
             XCUIApplication().launch()
         }
