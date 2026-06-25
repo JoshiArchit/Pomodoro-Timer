@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct RootView: View {
+    @StateObject private var manager = TimerManager()
+    
     var body: some View {
         TabView {
             TimerView()
@@ -25,6 +27,7 @@ struct RootView: View {
                     Label("Settings", systemImage: "gearshape")
                 }
         }
+        .environmentObject(manager)
     }
 }
 

@@ -9,7 +9,7 @@ import SwiftUI
 import PomodoroCore
 
 struct HistoryView: View {
-    @StateObject private var manager = TimerManager()
+    @EnvironmentObject var manager: TimerManager
     
     var body: some View {
         NavigationStack {
@@ -99,5 +99,5 @@ private struct SessionRow: View {
 }
 
 #Preview {
-    HistoryView()
+    HistoryView().environmentObject(TimerManager())
 }
