@@ -10,6 +10,7 @@ import PomodoroCore
 
 struct HistoryView: View {
     @EnvironmentObject var manager: TimerManager
+    @State private var showingClearConfirmation = false
     
     var body: some View {
         NavigationStack {
@@ -21,6 +22,28 @@ struct HistoryView: View {
                 }
             }
             .navigationTitle("History")
+            .toolbar {
+                if !manager.sessionHistory.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Clear", role: .destructive) {
+                            showingClearConfirmation = true
+                        }
+                        .foregroundStyle(.red)
+                    }
+                }
+            }
+            .confirmationDialog(
+                "Clear History",
+                isPresented: $showingClearConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Clear All Sessions", role: .destructive) {
+                    manager.sessionHistory.removeAll()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This will permanently delete all session history.")
+            }
         }
     }
     
@@ -37,7 +60,7 @@ struct HistoryView: View {
                 .fontWeight(.semibold)
             
             Text("Complete a Pomodoro session to see your history here.")
-                .font(.headline)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
@@ -99,5 +122,6 @@ private struct SessionRow: View {
 }
 
 #Preview {
-    HistoryView().environmentObject(TimerManager())
+    HistoryView()
+        .environmentObject(TimerManager())
 }
