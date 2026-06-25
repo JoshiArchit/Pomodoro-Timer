@@ -1,41 +1,41 @@
-//
-//  PomodoroState.swift
-//  Pomodoro Watch App Watch App
-//
-//  Created by Archit Joshi on 6/22/26.
-//
+// The Swift Programming Language
+// https://docs.swift.org/swift-book
 
 import Foundation
 
-enum Phase {
+public enum Phase {
     case focus
     case shortBreak
     case longBreak
 }
 
-struct PomodoroSettings {
-    var focusDuration: TimeInterval = 25 * 60
-    var shortBreakDuration: TimeInterval = 5 * 60
-    var longBreakDuration: TimeInterval = 15 * 60
-    var sessionsBeforeLongBreak: Int = 4
+public struct PomodoroSettings {
+    public var focusDuration: TimeInterval = 25 * 60
+    public var shortBreakDuration: TimeInterval = 5 * 60
+    public var longBreakDuration: TimeInterval = 15 * 60
+    public var sessionsBeforeLongBreak: Int = 4
+    
+    public init() {}
 }
 
-struct PomodoroState {
-    var phase: Phase = .focus
-    var timeRemaining: TimeInterval = 25 * 60
-    var sessionsCompleted: Int = 0
-    var isRunning: Bool = false
-    var settings: PomodoroSettings = PomodoroSettings()
-
-    func totalDuration() -> TimeInterval {
+public struct PomodoroState {
+    public var phase: Phase = .focus
+    public var timeRemaining: TimeInterval = 25 * 60
+    public var sessionsCompleted: Int = 0
+    public var isRunning: Bool = false
+    public var settings: PomodoroSettings = PomodoroSettings()
+    
+    public init() {}
+    
+    public func totalDuration() -> TimeInterval {
         switch phase {
         case .focus:      return settings.focusDuration
         case .shortBreak: return settings.shortBreakDuration
         case .longBreak:  return settings.longBreakDuration
         }
     }
-
-    mutating func advance() {
+    
+    public mutating func advance() {
         switch phase {
         case .focus:
             sessionsCompleted += 1

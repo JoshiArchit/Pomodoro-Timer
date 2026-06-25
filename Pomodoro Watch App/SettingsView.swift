@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import PomodoroCore
 
 struct SettingsView: View {
     @Binding var settings: PomodoroSettings

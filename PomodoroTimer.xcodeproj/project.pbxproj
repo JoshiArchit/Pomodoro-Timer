@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		211D51692FEDE955008D3D88 /* PomodoroCore in Frameworks */ = {isa = PBXBuildFile; productRef = 211D51682FEDE955008D3D88 /* PomodoroCore */; };
+		211D516B2FEDE97E008D3D88 /* PomodoroCore in Frameworks */ = {isa = PBXBuildFile; productRef = 211D516A2FEDE97E008D3D88 /* PomodoroCore */; };
 		211EFBBD2FEA123D0019FA29 /* PomodoroWatchApp.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 211EFBB32FEA123C0019FA29 /* PomodoroWatchApp.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -90,6 +92,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				211D516B2FEDE97E008D3D88 /* PomodoroCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -97,6 +100,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				211D51692FEDE955008D3D88 /* PomodoroCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -117,6 +121,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		211D51672FEDE955008D3D88 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		211EFB982FEA11910019FA29 = {
 			isa = PBXGroup;
 			children = (
@@ -127,6 +138,7 @@
 				211EFBB42FEA123C0019FA29 /* Pomodoro Watch App */,
 				2153B9552FEB56AF0026290F /* PomodoroWatchAppTests */,
 				2153B9622FEB56F20026290F /* PomodoroWatchAppUITests */,
+				211D51672FEDE955008D3D88 /* Frameworks */,
 				211EFBA22FEA11910019FA29 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -164,6 +176,7 @@
 			);
 			name = PomodoroTimer;
 			packageProductDependencies = (
+				211D516A2FEDE97E008D3D88 /* PomodoroCore */,
 			);
 			productName = PomodoroTimer;
 			productReference = 211EFBA12FEA11910019FA29 /* PomodoroTimer.app */;
@@ -186,6 +199,7 @@
 			);
 			name = PomodoroWatchApp;
 			packageProductDependencies = (
+				211D51682FEDE955008D3D88 /* PomodoroCore */,
 			);
 			productName = "Pomodoro Watch App Watch App";
 			productReference = 211EFBB32FEA123C0019FA29 /* PomodoroWatchApp.app */;
@@ -272,6 +286,9 @@
 			);
 			mainGroup = 211EFB982FEA11910019FA29;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				211D51662FEDE93D008D3D88 /* XCLocalSwiftPackageReference "PomodoroCore" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 211EFBA22FEA11910019FA29 /* Products */;
 			projectDirPath = "";
@@ -758,6 +775,26 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		211D51662FEDE93D008D3D88 /* XCLocalSwiftPackageReference "PomodoroCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = PomodoroCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		211D51682FEDE955008D3D88 /* PomodoroCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 211D51662FEDE93D008D3D88 /* XCLocalSwiftPackageReference "PomodoroCore" */;
+			productName = PomodoroCore;
+		};
+		211D516A2FEDE97E008D3D88 /* PomodoroCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 211D51662FEDE93D008D3D88 /* XCLocalSwiftPackageReference "PomodoroCore" */;
+			productName = PomodoroCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 211EFB992FEA11910019FA29 /* Project object */;
 }
