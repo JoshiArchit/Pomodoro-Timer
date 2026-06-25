@@ -8,17 +8,16 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var manager = TimerManager()
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView {
+            TimerView(manager: manager)
+            SettingsView(settings: $manager.state.settings)
         }
-        .padding()
+        .tabViewStyle(.verticalPage)
     }
 }
-
 #Preview {
     ContentView()
 }
