@@ -12,11 +12,24 @@ import UserNotifications
 import PomodoroCore
 
 class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate {
-    @Published var state = PomodoroState() // Expose state to Views so they can subscribe to it
-    @Published var sessionHistory: [SessionRecord] = []
+    
+    @Published var state = PomodoroState() {
+        didSet { saveSettings() }
+    }
+    @Published var sessionHistory: [SessionRecord] = [] {
+        didSet { saveHistory() }
+    }
     
     private var timer: Timer?
     private var extendedSession: WKExtendedRuntimeSession?
+    private let settingsKey = "pomodoro_settings"
+    private let historyKey = "pomodoro_history"
+    
+    override init() {
+        super.init()
+        loadSettings()
+        loadHistory()
+    }
     
     // MARK: - Timer Control
     
@@ -82,7 +95,6 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     }
     
     func extendedRuntimeSessionWillExpire(_ extendedRuntimeSession: WKExtendedRuntimeSession) {
-        // Session is about to expire — pause gracefully
         pause()
     }
     
@@ -92,12 +104,39 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         print("Extended session invalidated: \(reason)")
     }
     
+    // MARK: - Persistence
+    
+    private func saveSettings() {
+        guard let encoded = try? JSONEncoder().encode(state.settings) else { return }
+        UserDefaults.standard.set(encoded, forKey: settingsKey)
+    }
+    
+    private func loadSettings() {
+        guard let data = UserDefaults.standard.data(forKey: settingsKey),
+              let settings = try? JSONDecoder().decode(PomodoroSettings.self, from: data)
+        else { return }
+        state.settings = settings
+        state.timeRemaining = settings.focusDuration
+    }
+    
+    private func saveHistory() {
+        guard let encoded = try? JSONEncoder().encode(sessionHistory) else { return }
+        UserDefaults.standard.set(encoded, forKey: historyKey)
+    }
+    
+    private func loadHistory() {
+        guard let data = UserDefaults.standard.data(forKey: historyKey),
+              let history = try? JSONDecoder().decode([SessionRecord].self, from: data)
+        else { return }
+        sessionHistory = history
+    }
+    
     // MARK: - Notifications
-
+    
     private func scheduleNotification(for phase: Phase) {
         let content = UNMutableNotificationContent()
         content.sound = .default
-
+        
         switch phase {
         case .focus:
             content.title = "Focus Complete 🍅"
@@ -109,10 +148,9 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
             content.title = "Long Break Over"
             content.body = "Ready for another round?"
         }
-
+        
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
     }
 }
-
