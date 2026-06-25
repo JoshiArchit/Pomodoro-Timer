@@ -3,7 +3,7 @@
 
 import Foundation
 
-public enum Phase {
+public enum Phase: Codable {
     case focus
     case shortBreak
     case longBreak
