@@ -12,8 +12,8 @@ import UserNotifications
 import PomodoroCore
 
 class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate {
-    
     @Published var state = PomodoroState() // Expose state to Views so they can subscribe to it
+    @Published var sessionHistory: [SessionRecord] = []
     
     private var timer: Timer?
     private var extendedSession: WKExtendedRuntimeSession?
@@ -55,8 +55,14 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     }
     
     private func sessionCompleted() {
+        let record = SessionRecord(
+            phase: state.phase,
+            duration: state.totalDuration()
+        )
+        sessionHistory.append(record)
         pause()
         WKInterfaceDevice.current().play(.notification)
+        scheduleNotification(for: state.phase)
         state.advance()
     }
     

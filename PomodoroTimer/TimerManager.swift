@@ -11,7 +11,7 @@ import UserNotifications
 import Combine
 
 class TimerManager: NSObject, ObservableObject {
-    
+    @Published var sessionHistory: [SessionRecord] = []
     @Published var state = PomodoroState()
     
     private var timer: Timer?
@@ -52,6 +52,11 @@ class TimerManager: NSObject, ObservableObject {
     }
     
     private func sessionCompleted() {
+        let record = SessionRecord(
+            phase: state.phase,
+            duration: state.totalDuration()
+        )
+        sessionHistory.append(record)
         pause()
         scheduleNotification(for: state.phase)
         state.advance()
