@@ -53,6 +53,8 @@
 		211EFBB32FEA123C0019FA29 /* PomodoroWatchApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PomodoroWatchApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2153B9542FEB56AF0026290F /* PomodoroWatchAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PomodoroWatchAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2153B9612FEB56F20026290F /* PomodoroWatchAppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PomodoroWatchAppUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2193AD3B2FECB189000ECB8C /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		2193AD3C2FECB189000ECB8C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -74,6 +76,11 @@
 		2153B9622FEB56F20026290F /* PomodoroWatchAppUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = PomodoroWatchAppUITests;
+			sourceTree = "<group>";
+		};
+		2193AD3D2FECB1CB000ECB8C /* Screenshots */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Screenshots;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -113,6 +120,9 @@
 		211EFB982FEA11910019FA29 = {
 			isa = PBXGroup;
 			children = (
+				2193AD3D2FECB1CB000ECB8C /* Screenshots */,
+				2193AD3B2FECB189000ECB8C /* LICENSE */,
+				2193AD3C2FECB189000ECB8C /* README.md */,
 				211EFBA32FEA11910019FA29 /* PomodoroTimer */,
 				211EFBB42FEA123C0019FA29 /* Pomodoro Watch App */,
 				2153B9552FEB56AF0026290F /* PomodoroWatchAppTests */,

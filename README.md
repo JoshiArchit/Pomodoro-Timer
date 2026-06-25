@@ -6,6 +6,16 @@ A native Apple Watch Pomodoro timer built with SwiftUI and WatchKit.
 
 Pomodoro Timer helps you stay focused using the [Pomodoro Technique](https://en.wikipedia.org/wiki/Pomodoro_Technique) — 25 minutes of focused work followed by short breaks, with a longer break after every 4 sessions.
 
+## Screenshots
+### WatchOS
+<p float="left">
+    <img src="Screenshots/splash_screen.png" width="200" />
+    <img src="Screenshots/focus.png" width="200" />
+    <img src="Screenshots/short_break.png" width="200" />
+    <img src="Screenshots/settings_1.png" width="200" />
+    <img src="Screenshots/settings_2.png" width="200" />
+</p>
+
 ## Features
 
 - ⏱ Focus, short break, and long break timer cycles
