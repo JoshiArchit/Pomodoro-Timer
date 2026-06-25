@@ -22,14 +22,14 @@ struct TimerView: View {
                     
                     VStack(spacing: 8) {
                         Text(phaseLabel)
-                            .font(.headline)
+                            .font(.title)
                             .foregroundStyle(.secondary)
                         
                         Text(timeString)
                             .font(.system(size: 64, weight: .bold, design: .monospaced))
                         
                         Text(sessionLabel)
-                            .font(.subheadline)
+                            .font(.title2)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -127,10 +127,6 @@ struct TimerView: View {
         case .longBreak:  return "Long break over — let's go!"
         }
     }
-}
-
-#Preview {
-    TimerView()
 }
 
 #Preview {
