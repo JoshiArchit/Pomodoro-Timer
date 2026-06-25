@@ -9,7 +9,7 @@ import SwiftUI
 import PomodoroCore
 
 struct SettingsView: View {
-    @StateObject private var manager = TimerManager()
+    @EnvironmentObject private var manager: TimerManager
     
     var body: some View {
         NavigationStack {
@@ -87,5 +87,5 @@ private struct DurationPicker: View {
 }
 
 #Preview {
-    SettingsView()
+    SettingsView().environmentObject(TimerManager())
 }
