@@ -6,15 +6,28 @@
 //
 
 import Foundation
+import Combine
 import PomodoroCore
 import UserNotifications
-import Combine
 
 class TimerManager: NSObject, ObservableObject {
-    @Published var sessionHistory: [SessionRecord] = []
-    @Published var state = PomodoroState()
+    
+    @Published var state = PomodoroState() {
+        didSet { saveSettings() }
+    }
+    @Published var sessionHistory: [SessionRecord] = [] {
+        didSet { saveHistory() }
+    }
     
     private var timer: Timer?
+    private let settingsKey = "pomodoro_settings"
+    private let historyKey = "pomodoro_history"
+    
+    override init() {
+        super.init()
+        loadSettings()
+        loadHistory()
+    }
     
     // MARK: - Timer Control
     
@@ -60,6 +73,33 @@ class TimerManager: NSObject, ObservableObject {
         pause()
         scheduleNotification(for: state.phase)
         state.advance()
+    }
+    
+    // MARK: - Persistence
+    
+    private func saveSettings() {
+        guard let encoded = try? JSONEncoder().encode(state.settings) else { return }
+        UserDefaults.standard.set(encoded, forKey: settingsKey)
+    }
+    
+    private func loadSettings() {
+        guard let data = UserDefaults.standard.data(forKey: settingsKey),
+              let settings = try? JSONDecoder().decode(PomodoroSettings.self, from: data)
+        else { return }
+        state.settings = settings
+        state.timeRemaining = settings.focusDuration
+    }
+    
+    private func saveHistory() {
+        guard let encoded = try? JSONEncoder().encode(sessionHistory) else { return }
+        UserDefaults.standard.set(encoded, forKey: historyKey)
+    }
+    
+    private func loadHistory() {
+        guard let data = UserDefaults.standard.data(forKey: historyKey),
+              let history = try? JSONDecoder().decode([SessionRecord].self, from: data)
+        else { return }
+        sessionHistory = history
     }
     
     // MARK: - Notifications
