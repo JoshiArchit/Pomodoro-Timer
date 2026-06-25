@@ -1,4 +1,5 @@
 import SwiftUI
+import PomodoroCore
 
 struct TimerView: View {
     @ObservedObject var manager: TimerManager

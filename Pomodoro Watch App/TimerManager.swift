@@ -9,6 +9,7 @@ import Foundation
 import WatchKit
 import Combine
 import UserNotifications
+import PomodoroCore
 
 class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate {
     

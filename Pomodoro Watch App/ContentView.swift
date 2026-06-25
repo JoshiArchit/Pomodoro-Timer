@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PomodoroCore
 
 struct ContentView: View {
     @StateObject private var manager = TimerManager()
