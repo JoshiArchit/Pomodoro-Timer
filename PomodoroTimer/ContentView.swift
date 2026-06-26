@@ -6,31 +6,45 @@
 //
 
 import SwiftUI
+import PomodoroCore
 
-struct RootView: View {
+struct AppRootView: View {
     @StateObject private var manager = TimerManager()
+    @State private var isShowingSplash = true
     
     var body: some View {
-        TabView {
-            TimerView()
-                .tabItem {
-                    Label("Timer", systemImage: "timer")
+        if isShowingSplash {
+            SplashView()
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        withAnimation(.easeOut(duration: 0.4)) {
+                            isShowingSplash = false
+                        }
+                    }
                 }
-            
-            HistoryView()
-                .tabItem {
-                    Label("History", systemImage: "clock.arrow.circlepath")
-                }
-            
-            SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: "gearshape")
-                }
+        } else {
+            TabView {
+                TimerView()
+                    .tabItem {
+                        Label("Timer", systemImage: "timer")
+                    }
+                
+                HistoryView()
+                    .tabItem {
+                        Label("History", systemImage: "clock.arrow.circlepath")
+                    }
+                
+                SettingsView()
+                    .tabItem {
+                        Label("Settings", systemImage: "gearshape")
+                    }
+            }
+            .environmentObject(manager)
+            .transition(.opacity)
         }
-        .environmentObject(manager)
     }
 }
 
 #Preview {
-    RootView()
+    AppRootView()
 }
