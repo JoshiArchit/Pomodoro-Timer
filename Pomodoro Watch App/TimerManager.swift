@@ -25,10 +25,14 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     private let settingsKey = "pomodoro_settings"
     private let historyKey = "pomodoro_history"
     
+    private let connectivity = ConnectivityManager.shared
+    private var cancellables = Set<AnyCancellable>()
+    
     override init() {
         super.init()
         loadSettings()
         loadHistory()
+        observeConnectivity()
     }
     
     // MARK: - Timer Control
@@ -36,6 +40,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     func start() {
         state.isRunning = true
         startExtendedSession()
+        connectivity.sendTimerState(state)
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             self?.tick()
         }
@@ -62,6 +67,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     private func tick() {
         if state.timeRemaining > 0 {
             state.timeRemaining -= 1
+            connectivity.sendTimerState(state)
         } else {
             sessionCompleted()
         }
@@ -109,6 +115,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     private func saveSettings() {
         guard let encoded = try? JSONEncoder().encode(state.settings) else { return }
         UserDefaults.standard.set(encoded, forKey: settingsKey)
+        connectivity.sendSettings(state.settings)
     }
     
     private func loadSettings() {
@@ -152,5 +159,26 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
+    }
+    
+    // MARK: Connectivity
+    private func observeConnectivity() {
+        ConnectivityManager.shared.$receivedSettings
+            .compactMap { $0 }
+            .sink { [weak self] settings in
+                self?.state.settings = settings
+                self?.state.timeRemaining = settings.focusDuration
+            }
+            .store(in: &cancellables)
+        
+        ConnectivityManager.shared.$receivedTimerState
+            .compactMap { $0 }
+            .sink { [weak self] payload in
+                self?.state.timeRemaining = payload.timeRemaining
+                self?.state.phase = payload.phase
+                self?.state.isRunning = payload.isRunning
+                self?.state.sessionsCompleted = payload.sessionsCompleted
+            }
+            .store(in: &cancellables)
     }
 }
