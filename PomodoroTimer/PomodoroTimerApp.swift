@@ -17,7 +17,7 @@ struct PomodoroTimerApp: App {
     
     var body: some Scene {
         WindowGroup {
-            RootView()
+            AppRootView()
         }
     }
     
