@@ -9,7 +9,7 @@ public enum Phase: Codable {
     case longBreak
 }
 
-public struct PomodoroSettings: Codable {
+public struct PomodoroSettings: Codable, Equatable {
     public var focusDuration: TimeInterval = 25 * 60
     public var shortBreakDuration: TimeInterval = 5 * 60
     public var longBreakDuration: TimeInterval = 15 * 60
