@@ -56,7 +56,7 @@ class TimerManager: NSObject, ObservableObject {
     
     func skip() {
         pause()
-        state.advance()
+        sessionCompleted(wasSkipped:true)
     }
     
     // MARK: - Tick
@@ -70,10 +70,11 @@ class TimerManager: NSObject, ObservableObject {
         }
     }
     
-    private func sessionCompleted() {
+    private func sessionCompleted(wasSkipped:Bool = false) {
         let record = SessionRecord(
             phase: state.phase,
-            duration: state.totalDuration()
+            duration: state.totalDuration(),
+            wasSkipped: wasSkipped
         )
         sessionHistory.append(record)
         pause()
@@ -151,5 +152,19 @@ class TimerManager: NSObject, ObservableObject {
                 self?.state.sessionsCompleted = payload.sessionsCompleted
             }
             .store(in: &cancellables)
+    }
+    
+    // MARK: - Preview
+
+    static var preview: TimerManager {
+        let manager = TimerManager()
+        manager.sessionHistory = [
+            SessionRecord(phase: .focus, duration: 1500),
+            SessionRecord(phase: .shortBreak, duration: 300),
+            SessionRecord(phase: .focus, duration: 1500, wasSkipped: true),
+            SessionRecord(phase: .focus, duration: 1500),
+            SessionRecord(phase: .longBreak, duration: 900),
+        ]
+        return manager
     }
 }

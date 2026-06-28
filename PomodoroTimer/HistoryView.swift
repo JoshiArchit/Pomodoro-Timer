@@ -93,6 +93,9 @@ private struct SessionRow: View {
                 Text(record.completedAt, style: .time)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                Text(record.wasSkipped ? "Skipped" : "Completed")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
             
             Spacer()
@@ -123,5 +126,5 @@ private struct SessionRow: View {
 
 #Preview {
     HistoryView()
-        .environmentObject(TimerManager())
+        .environmentObject(TimerManager.preview)
 }
