@@ -14,7 +14,11 @@ import PomodoroCore
 class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate {
     
     @Published var state = PomodoroState() {
-        didSet { saveSettings() }
+        didSet {
+            if oldValue.settings != state.settings {
+                saveSettings()
+            }
+        }
     }
     @Published var sessionHistory: [SessionRecord] = [] {
         didSet { saveHistory() }
@@ -27,6 +31,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     
     private let connectivity = ConnectivityManager.shared
     private var cancellables = Set<AnyCancellable>()
+    private var isReceivingRemoteUpdate: Bool = false
     
     override init() {
         super.init()
@@ -40,7 +45,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     func start() {
         state.isRunning = true
         startExtendedSession()
-        connectivity.sendTimerState(state)
+        syncTimerState()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             self?.tick()
         }
@@ -50,6 +55,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         state.isRunning = false
         timer?.invalidate()
         timer = nil
+        syncTimerState()
     }
     
     func reset() {
@@ -58,8 +64,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     }
     
     func skip() {
-        pause()
-        state.advance()
+        sessionCompleted(wasSkipped: true)
     }
     
     // MARK: - Tick
@@ -67,24 +72,12 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     private func tick() {
         if state.timeRemaining > 0 {
             state.timeRemaining -= 1
-            connectivity.sendTimerState(state)
+            syncTimerState()
         } else {
             sessionCompleted()
         }
     }
-    
-    private func sessionCompleted() {
-        let record = SessionRecord(
-            phase: state.phase,
-            duration: state.totalDuration()
-        )
-        sessionHistory.append(record)
-        pause()
-        WKInterfaceDevice.current().play(.notification)
-        scheduleNotification(for: state.phase)
-        state.advance()
-    }
-    
+
     // MARK: - Extended Runtime Session
     
     private func startExtendedSession() {
@@ -115,6 +108,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     private func saveSettings() {
         guard let encoded = try? JSONEncoder().encode(state.settings) else { return }
         UserDefaults.standard.set(encoded, forKey: settingsKey)
+        guard !isReceivingRemoteUpdate else { return }
         connectivity.sendSettings(state.settings)
     }
     
@@ -136,6 +130,21 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
               let history = try? JSONDecoder().decode([SessionRecord].self, from: data)
         else { return }
         sessionHistory = history
+    }
+    
+    private func sessionCompleted(wasSkipped: Bool = false) {
+        let record = SessionRecord (
+            phase: state.phase,
+            duration: state.totalDuration(),
+            wasSkipped: wasSkipped
+        )
+        
+        sessionHistory.append(record)
+        pause()
+        WKInterfaceDevice.current().play(.notification)
+        scheduleNotification(for: state.phase)
+        state.advance()
+        syncTimerState()
     }
     
     // MARK: - Notifications
@@ -166,19 +175,30 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         ConnectivityManager.shared.$receivedSettings
             .compactMap { $0 }
             .sink { [weak self] settings in
-                self?.state.settings = settings
-                self?.state.timeRemaining = settings.focusDuration
+                guard let self else { return }
+                isReceivingRemoteUpdate = true
+                state.settings = settings
+                state.timeRemaining = settings.focusDuration
+                isReceivingRemoteUpdate = false
             }
             .store(in: &cancellables)
         
         ConnectivityManager.shared.$receivedTimerState
             .compactMap { $0 }
             .sink { [weak self] payload in
-                self?.state.timeRemaining = payload.timeRemaining
-                self?.state.phase = payload.phase
-                self?.state.isRunning = payload.isRunning
-                self?.state.sessionsCompleted = payload.sessionsCompleted
+                guard let self else { return }
+                isReceivingRemoteUpdate = true
+                state.timeRemaining = payload.timeRemaining
+                state.phase = payload.phase
+                state.isRunning = payload.isRunning
+                state.sessionsCompleted = payload.sessionsCompleted
+                isReceivingRemoteUpdate = false
             }
             .store(in: &cancellables)
+    }
+    
+    private func syncTimerState() {
+        guard !isReceivingRemoteUpdate else { return }
+        connectivity.sendTimerState(state)
     }
 }

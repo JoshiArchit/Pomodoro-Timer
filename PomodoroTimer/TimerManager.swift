@@ -13,7 +13,11 @@ import UserNotifications
 class TimerManager: NSObject, ObservableObject {
     
     @Published var state = PomodoroState() {
-        didSet { saveSettings() }
+        didSet {
+            if oldValue.settings != state.settings {
+                saveSettings()
+            }
+        }
     }
     @Published var sessionHistory: [SessionRecord] = [] {
         didSet { saveHistory() }
@@ -25,6 +29,7 @@ class TimerManager: NSObject, ObservableObject {
     
     private let connectivity = ConnectivityManager.shared
     private var cancellables = Set<AnyCancellable>()
+    private var isReceivingRemoteUpdates = false
     
     override init() {
         super.init()
@@ -37,7 +42,7 @@ class TimerManager: NSObject, ObservableObject {
     
     func start() {
         state.isRunning = true
-        connectivity.sendTimerState(state)
+        syncTimerState()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             self?.tick()
         }
@@ -47,6 +52,7 @@ class TimerManager: NSObject, ObservableObject {
         state.isRunning = false
         timer?.invalidate()
         timer = nil
+        syncTimerState()
     }
     
     func reset() {
@@ -64,7 +70,7 @@ class TimerManager: NSObject, ObservableObject {
     private func tick() {
         if state.timeRemaining > 0 {
             state.timeRemaining -= 1
-            connectivity.sendTimerState(state)
+            syncTimerState()
         } else {
             sessionCompleted()
         }
@@ -80,6 +86,7 @@ class TimerManager: NSObject, ObservableObject {
         pause()
         scheduleNotification(for: state.phase)
         state.advance()
+        syncTimerState()
     }
     
     // MARK: - Persistence
@@ -87,6 +94,7 @@ class TimerManager: NSObject, ObservableObject {
     private func saveSettings() {
         guard let encoded = try? JSONEncoder().encode(state.settings) else { return }
         UserDefaults.standard.set(encoded, forKey: settingsKey)
+        guard !isReceivingRemoteUpdates else { return }
         connectivity.sendSettings(state.settings)
     }
     
@@ -138,20 +146,35 @@ class TimerManager: NSObject, ObservableObject {
         ConnectivityManager.shared.$receivedSettings
             .compactMap { $0 }
             .sink { [weak self] settings in
-                self?.state.settings = settings
-                self?.state.timeRemaining = settings.focusDuration
+                guard let self else { return }
+                isReceivingRemoteUpdates = true
+                state.settings = settings
+                state.timeRemaining = settings.focusDuration
+                isReceivingRemoteUpdates = false
             }
             .store(in: &cancellables)
         
         ConnectivityManager.shared.$receivedTimerState
             .compactMap { $0 }
             .sink { [weak self] payload in
-                self?.state.timeRemaining = payload.timeRemaining
-                self?.state.phase = payload.phase
-                self?.state.isRunning = payload.isRunning
-                self?.state.sessionsCompleted = payload.sessionsCompleted
+                guard let self else { return }
+                isReceivingRemoteUpdates = true
+                state.timeRemaining = payload.timeRemaining
+                state.phase = payload.phase
+                state.isRunning = payload.isRunning
+                state.sessionsCompleted = payload.sessionsCompleted
+                if !payload.isRunning {
+                    timer?.invalidate()
+                    timer = nil
+                }
+                isReceivingRemoteUpdates = false
             }
             .store(in: &cancellables)
+    }
+    
+    private func syncTimerState() {
+        guard !isReceivingRemoteUpdates else { return }
+        connectivity.sendTimerState(state)
     }
     
     // MARK: - Preview
