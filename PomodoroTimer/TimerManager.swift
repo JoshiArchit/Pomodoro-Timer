@@ -58,6 +58,7 @@ class TimerManager: NSObject, ObservableObject {
     func reset() {
         pause()
         state.timeRemaining = state.totalDuration()
+        syncTimerState()
     }
     
     func skip() {
