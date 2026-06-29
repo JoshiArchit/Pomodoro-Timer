@@ -115,6 +115,5 @@ Direct pushes to `main` are blocked. All changes go through a pull request.
 Archit Joshi — learning iOS/watchOS development through [100 Days of SwiftUI](https://www.hackingwithswift.com/100/swiftui)
 
 ## License
-## License
 
 [MIT](LICENSE)
