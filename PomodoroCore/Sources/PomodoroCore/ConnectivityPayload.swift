@@ -14,17 +14,23 @@ public enum ConnectivityKey {
     public static let sessionHistory = "sessionHistory"
 }
 
-/// Codable payload for syncing timer state
+/// Codable payload for syncing timer state across devices.
+/// Uses `phaseEndDate` as the anchor so the receiving device can drive its own
+/// countdown display without needing per-second messages.
 public struct TimerStatePayload: Codable {
     public let isRunning: Bool
     public let timeRemaining: TimeInterval
     public let phase: Phase
     public let sessionsCompleted: Int
-    
+    public let phaseEndDate: Date?
+    public let sessionID: UUID
+
     public init(from state: PomodoroState) {
         self.isRunning = state.isRunning
         self.timeRemaining = state.timeRemaining
         self.phase = state.phase
         self.sessionsCompleted = state.sessionsCompleted
+        self.phaseEndDate = state.phaseEndDate
+        self.sessionID = state.sessionID
     }
 }

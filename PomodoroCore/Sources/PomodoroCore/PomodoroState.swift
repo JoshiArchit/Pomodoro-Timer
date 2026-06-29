@@ -24,9 +24,15 @@ public struct PomodoroState {
     public var sessionsCompleted: Int = 0
     public var isRunning: Bool = false
     public var settings: PomodoroSettings = PomodoroSettings()
-    
+    /// Set to `Date() + timeRemaining` when the timer starts; nil when paused.
+    /// Both devices compute the countdown locally from this anchor instead of
+    /// receiving per-second ticks, so backgrounding one device doesn't freeze the other.
+    public var phaseEndDate: Date? = nil
+    /// Changes on every phase advance so either device can detect double-completion.
+    public var sessionID: UUID = UUID()
+
     public init() {}
-    
+
     public func totalDuration() -> TimeInterval {
         switch phase {
         case .focus:      return settings.focusDuration
@@ -34,8 +40,9 @@ public struct PomodoroState {
         case .longBreak:  return settings.longBreakDuration
         }
     }
-    
+
     public mutating func advance() {
+        sessionID = UUID()
         switch phase {
         case .focus:
             sessionsCompleted += 1
