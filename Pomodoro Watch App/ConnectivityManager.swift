@@ -32,19 +32,19 @@ class ConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     // MARK: - Send
     
     func sendTimerState(_ state: PomodoroState) {
-        guard WCSession.default.isReachable else { return }
+        guard WCSession.default.activationState == .activated else { return }
         guard let encoded = try? JSONEncoder().encode(TimerStatePayload(from: state)) else { return }
-        WCSession.default.sendMessage(
-            [ConnectivityKey.timerState: encoded],
-            replyHandler: nil
-        )
+        var context = WCSession.default.applicationContext
+        context[ConnectivityKey.timerState] = encoded
+        try? WCSession.default.updateApplicationContext(context)
     }
-    
+
     func sendSettings(_ settings: PomodoroSettings) {
+        guard WCSession.default.activationState == .activated else { return }
         guard let encoded = try? JSONEncoder().encode(settings) else { return }
-        try? WCSession.default.updateApplicationContext(
-            [ConnectivityKey.settings: encoded]
-        )
+        var context = WCSession.default.applicationContext
+        context[ConnectivityKey.settings] = encoded
+        try? WCSession.default.updateApplicationContext(context)
     }
     
     // MARK: - WCSessionDelegate
@@ -56,23 +56,12 @@ class ConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     }
     
     func session(_ session: WCSession,
-                 didReceiveMessage message: [String: Any]) {
+                 didReceiveApplicationContext applicationContext: [String: Any]) {
         DispatchQueue.main.async {
-            if let data = message[ConnectivityKey.timerState] as? Data,
+            if let data = applicationContext[ConnectivityKey.timerState] as? Data,
                let payload = try? JSONDecoder().decode(TimerStatePayload.self, from: data) {
                 self.receivedTimerState = payload
             }
-            
-            if let data = message[ConnectivityKey.settings] as? Data,
-               let settings = try? JSONDecoder().decode(PomodoroSettings.self, from: data) {
-                self.receivedSettings = settings
-            }
-        }
-    }
-    
-    func session(_ session: WCSession,
-                 didReceiveApplicationContext applicationContext: [String: Any]) {
-        DispatchQueue.main.async {
             if let data = applicationContext[ConnectivityKey.settings] as? Data,
                let settings = try? JSONDecoder().decode(PomodoroSettings.self, from: data) {
                 self.receivedSettings = settings
