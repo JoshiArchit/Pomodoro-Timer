@@ -61,6 +61,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     func reset() {
         pause()
         state.timeRemaining = state.totalDuration()
+        syncTimerState()
     }
     
     func skip() {
