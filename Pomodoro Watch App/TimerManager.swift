@@ -216,6 +216,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
             .compactMap { $0 }
             .sink { [weak self] settings in
                 guard let self else { return }
+                guard settings != state.settings else { return }
                 isReceivingRemoteUpdate = true
                 state.settings = settings
                 state.timeRemaining = settings.focusDuration
