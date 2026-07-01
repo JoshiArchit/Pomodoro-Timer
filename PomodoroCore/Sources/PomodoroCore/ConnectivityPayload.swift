@@ -12,6 +12,7 @@ public enum ConnectivityKey {
     public static let settings = "settings"
     public static let timerState = "timerState"
     public static let sessionHistory = "sessionHistory"
+    public static let dismissNotification = "dismissNotification"
 }
 
 /// Codable payload for syncing timer state across devices.

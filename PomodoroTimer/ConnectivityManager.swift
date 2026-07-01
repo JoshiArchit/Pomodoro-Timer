@@ -16,6 +16,7 @@ class ConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     
     @Published var receivedSettings: PomodoroSettings?
     @Published var receivedTimerState: TimerStatePayload?
+    @Published var receivedDismissID: String?
     
     override init() {
         super.init()
@@ -36,6 +37,11 @@ class ConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
         var context = WCSession.default.applicationContext
         context[ConnectivityKey.timerState] = encoded
         try? WCSession.default.updateApplicationContext(context)
+    }
+
+    func sendNotificationDismiss(id: String) {
+        guard WCSession.default.activationState == .activated else { return }
+        WCSession.default.transferUserInfo([ConnectivityKey.dismissNotification: id])
     }
 
     func sendSettings(_ settings: PomodoroSettings) {
@@ -63,6 +69,14 @@ class ConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
         WCSession.default.activate()
     }
     
+    func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
+        DispatchQueue.main.async {
+            if let id = userInfo[ConnectivityKey.dismissNotification] as? String {
+                self.receivedDismissID = id
+            }
+        }
+    }
+
     func session(_ session: WCSession,
                  didReceiveApplicationContext applicationContext: [String: Any]) {
         DispatchQueue.main.async {

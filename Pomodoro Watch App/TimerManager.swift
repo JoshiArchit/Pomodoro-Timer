@@ -11,7 +11,9 @@ import Combine
 import UserNotifications
 import PomodoroCore
 
-class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate {
+class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate, UNUserNotificationCenterDelegate {
+
+    @Published var alertDismissTrigger = 0
 
     @Published var state = PomodoroState() {
         didSet {
@@ -28,6 +30,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     /// so the UI keeps ticking regardless of what the peer device is doing.
     private var displayTimer: Timer?
     private var extendedSession: WKExtendedRuntimeSession?
+    private var lastScheduledNotifID: String?
     private let settingsKey = "pomodoro_settings"
     private let historyKey = "pomodoro_history"
 
@@ -37,6 +40,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
 
     override init() {
         super.init()
+        UNUserNotificationCenter.current().delegate = self
         loadSettings()
         loadHistory()
         observeConnectivity()
@@ -123,7 +127,9 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         state.isRunning = false
         stopDisplayTimer()
         WKInterfaceDevice.current().play(.notification)
-        scheduleNotification(for: state.phase)
+        let notifID = state.sessionID.uuidString
+        lastScheduledNotifID = notifID
+        scheduleNotification(for: state.phase, id: notifID)
         state.advance()
         syncTimerState()
     }
@@ -188,7 +194,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
 
     // MARK: - Notifications
 
-    private func scheduleNotification(for phase: Phase) {
+    private func scheduleNotification(for phase: Phase, id: String) {
         let content = UNMutableNotificationContent()
         content.sound = .default
 
@@ -205,8 +211,30 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         }
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
+    }
+
+    func acknowledgePhaseCompletion() {
+        alertDismissTrigger += 1
+        if let id = lastScheduledNotifID {
+            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [id])
+            connectivity.sendNotificationDismiss(id: id)
+            lastScheduledNotifID = nil
+        }
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound])
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        acknowledgePhaseCompletion()
+        completionHandler()
     }
 
     // MARK: - Connectivity
@@ -245,6 +273,14 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
                     stopDisplayTimer()
                 }
                 isReceivingRemoteUpdate = false
+            }
+            .store(in: &cancellables)
+
+        ConnectivityManager.shared.$receivedDismissID
+            .compactMap { $0 }
+            .sink { [weak self] id in
+                UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [id])
+                self?.alertDismissTrigger += 1
             }
             .store(in: &cancellables)
     }

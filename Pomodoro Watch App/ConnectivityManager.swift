@@ -17,6 +17,7 @@ class ConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     // Published so views can react to incoming state
     @Published var receivedSettings: PomodoroSettings?
     @Published var receivedTimerState: TimerStatePayload?
+    @Published var receivedDismissID: String?
     
     override init() {
         super.init()
@@ -39,6 +40,11 @@ class ConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
         try? WCSession.default.updateApplicationContext(context)
     }
 
+    func sendNotificationDismiss(id: String) {
+        guard WCSession.default.activationState == .activated else { return }
+        WCSession.default.transferUserInfo([ConnectivityKey.dismissNotification: id])
+    }
+
     func sendSettings(_ settings: PomodoroSettings) {
         guard WCSession.default.activationState == .activated else { return }
         guard let encoded = try? JSONEncoder().encode(settings) else { return }
@@ -55,6 +61,14 @@ class ConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
         print("WCSession activated: \(activationState)")
     }
     
+    func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any]) {
+        DispatchQueue.main.async {
+            if let id = userInfo[ConnectivityKey.dismissNotification] as? String {
+                self.receivedDismissID = id
+            }
+        }
+    }
+
     func session(_ session: WCSession,
                  didReceiveApplicationContext applicationContext: [String: Any]) {
         DispatchQueue.main.async {

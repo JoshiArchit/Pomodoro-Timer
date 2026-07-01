@@ -56,13 +56,16 @@ struct TimerView: View {
             .padding()
             .navigationTitle("Pomodoro")
             .alert(phaseCompleteTitle, isPresented: $showingAlert) {
-                Button("OK") { }
+                Button("OK") { manager.acknowledgePhaseCompletion() }
             } message: {
                 Text(phaseCompleteMessage)
             }
             .onChange(of: manager.state.phase) { oldPhase, newPhase in
                 completedPhase = oldPhase
                 showingAlert = true
+            }
+            .onChange(of: manager.alertDismissTrigger) { _, _ in
+                showingAlert = false
             }
         }
     }
