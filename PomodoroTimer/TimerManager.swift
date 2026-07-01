@@ -18,6 +18,9 @@ class TimerManager: NSObject, ObservableObject, UNUserNotificationCenterDelegate
         didSet {
             if oldValue.settings != state.settings {
                 saveSettings()
+                if !state.isRunning && state.phaseEndDate == nil {
+                    state.timeRemaining = state.totalDuration()
+                }
             }
         }
     }

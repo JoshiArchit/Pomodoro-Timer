@@ -19,6 +19,9 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         didSet {
             if oldValue.settings != state.settings {
                 saveSettings()
+                if !state.isRunning && state.phaseEndDate == nil {
+                    state.timeRemaining = state.totalDuration()
+                }
             }
         }
     }
