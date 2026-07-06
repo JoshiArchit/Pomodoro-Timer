@@ -6,12 +6,26 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 @main
 struct PomodoroTimerApp: App {
+    
+    init() {
+        requestNotificationPermission()
+    }
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppRootView()
+        }
+    }
+    
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if let error {
+                print("Notification permission error: \(error)")
+            }
         }
     }
 }

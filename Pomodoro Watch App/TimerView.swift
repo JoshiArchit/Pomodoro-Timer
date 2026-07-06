@@ -1,4 +1,5 @@
 import SwiftUI
+import PomodoroCore
 
 struct TimerView: View {
     @ObservedObject var manager: TimerManager
@@ -52,13 +53,16 @@ struct TimerView: View {
             }
         }
         .alert(phaseCompleteTitle, isPresented: $showingAlert) {
-            Button("OK") { }
+            Button("OK") { manager.acknowledgePhaseCompletion() }
         } message: {
             Text(phaseCompleteMessage)
         }
         .onChange(of: manager.state.phase) { oldPhase, newPhase in
             completedPhase = oldPhase
             showingAlert = true
+        }
+        .onChange(of: manager.alertDismissTrigger) { _, _ in
+            showingAlert = false
         }
     }
     

@@ -6,16 +6,23 @@
 //
 
 import SwiftUI
+import PomodoroCore
 
 struct ContentView: View {
     @StateObject private var manager = TimerManager()
-    
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some View {
         TabView {
             TimerView(manager: manager)
             SettingsView(settings: $manager.state.settings)
         }
         .tabViewStyle(.verticalPage)
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                manager.resumeIfNeeded()
+            }
+        }
     }
 }
 #Preview {

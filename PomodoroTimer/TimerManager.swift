@@ -1,17 +1,16 @@
 //
-//  TimeManager.swift
-//  Pomodoro Watch App Watch App
+//  TimerManager.swift
+//  PomodoroTimer
 //
-//  Created by Archit Joshi on 6/22/26.
+//  Created by Archit Joshi on 6/25/26.
 //
 
 import Foundation
-import WatchKit
 import Combine
-import UserNotifications
 import PomodoroCore
+import UserNotifications
 
-class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate, UNUserNotificationCenterDelegate {
+class TimerManager: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
 
     @Published var alertDismissTrigger = 0
 
@@ -32,14 +31,13 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     /// Local display-only timer. Recomputes `state.timeRemaining` from `phaseEndDate`
     /// so the UI keeps ticking regardless of what the peer device is doing.
     private var displayTimer: Timer?
-    private var extendedSession: WKExtendedRuntimeSession?
     private var lastScheduledNotifID: String?
     private let settingsKey = "pomodoro_settings"
     private let historyKey = "pomodoro_history"
 
     private let connectivity = ConnectivityManager.shared
     private var cancellables = Set<AnyCancellable>()
-    private var isReceivingRemoteUpdate: Bool = false
+    private var isReceivingRemoteUpdates = false
 
     override init() {
         super.init()
@@ -54,7 +52,6 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     func start() {
         state.phaseEndDate = Date().addingTimeInterval(state.timeRemaining)
         state.isRunning = true
-        startExtendedSession()
         syncTimerState()
         startDisplayTimer()
     }
@@ -79,9 +76,8 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         sessionCompleted(wasSkipped: true, completingSessionID: state.sessionID)
     }
 
-    /// Call when the watch app returns to the foreground. Restarts the display timer
-    /// if a session is still running (extended runtime session may have expired
-    /// while the app was backgrounded, stopping the display timer).
+    /// Call when the app returns to the foreground. Restarts the display timer
+    /// if a session is still in progress (iOS may have suspended the app, pausing the timer).
     func resumeIfNeeded() {
         guard state.isRunning, state.phaseEndDate != nil, displayTimer == nil else { return }
         startDisplayTimer()
@@ -129,7 +125,6 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         state.phaseEndDate = nil
         state.isRunning = false
         stopDisplayTimer()
-        WKInterfaceDevice.current().play(.notification)
         let notifID = state.sessionID.uuidString
         lastScheduledNotifID = notifID
         scheduleNotification(for: state.phase, id: notifID)
@@ -137,41 +132,12 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         syncTimerState()
     }
 
-    // MARK: - Extended Runtime Session
-
-    private func startExtendedSession() {
-        extendedSession?.invalidate()
-        extendedSession = WKExtendedRuntimeSession()
-        extendedSession?.delegate = self
-        extendedSession?.start()
-    }
-
-    // MARK: - WKExtendedRuntimeSessionDelegate
-
-    func extendedRuntimeSessionDidStart(_ extendedRuntimeSession: WKExtendedRuntimeSession) {
-        print("Extended session started")
-    }
-
-    func extendedRuntimeSessionWillExpire(_ extendedRuntimeSession: WKExtendedRuntimeSession) {
-        // The extended session is ending (watch backgrounded). Stop the local display
-        // timer — we don't need UI updates in the background. Do NOT call pause() here;
-        // the anchor in phaseEndDate keeps time correctly and the phone can still detect
-        // completion on its end.
-        stopDisplayTimer()
-    }
-
-    func extendedRuntimeSession(_ extendedRuntimeSession: WKExtendedRuntimeSession,
-                                didInvalidateWith reason: WKExtendedRuntimeSessionInvalidationReason,
-                                error: Error?) {
-        print("Extended session invalidated: \(reason)")
-    }
-
     // MARK: - Persistence
 
     private func saveSettings() {
         guard let encoded = try? JSONEncoder().encode(state.settings) else { return }
         UserDefaults.standard.set(encoded, forKey: settingsKey)
-        guard !isReceivingRemoteUpdate else { return }
+        guard !isReceivingRemoteUpdates else { return }
         connectivity.sendSettings(state.settings)
     }
 
@@ -248,10 +214,10 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
             .sink { [weak self] settings in
                 guard let self else { return }
                 guard settings != state.settings else { return }
-                isReceivingRemoteUpdate = true
+                isReceivingRemoteUpdates = true
                 state.settings = settings
                 state.timeRemaining = settings.focusDuration
-                isReceivingRemoteUpdate = false
+                isReceivingRemoteUpdates = false
             }
             .store(in: &cancellables)
 
@@ -259,7 +225,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
             .compactMap { $0 }
             .sink { [weak self] payload in
                 guard let self else { return }
-                isReceivingRemoteUpdate = true
+                isReceivingRemoteUpdates = true
                 state.phase = payload.phase
                 state.sessionsCompleted = payload.sessionsCompleted
                 state.isRunning = payload.isRunning
@@ -275,7 +241,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
                 } else {
                     stopDisplayTimer()
                 }
-                isReceivingRemoteUpdate = false
+                isReceivingRemoteUpdates = false
             }
             .store(in: &cancellables)
 
@@ -289,7 +255,21 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     }
 
     private func syncTimerState() {
-        guard !isReceivingRemoteUpdate else { return }
+        guard !isReceivingRemoteUpdates else { return }
         connectivity.sendTimerState(state)
+    }
+
+    // MARK: - Preview
+
+    static var preview: TimerManager {
+        let manager = TimerManager()
+        manager.sessionHistory = [
+            SessionRecord(phase: .focus, duration: 1500),
+            SessionRecord(phase: .shortBreak, duration: 300),
+            SessionRecord(phase: .focus, duration: 1500, wasSkipped: true),
+            SessionRecord(phase: .focus, duration: 1500),
+            SessionRecord(phase: .longBreak, duration: 900),
+        ]
+        return manager
     }
 }
