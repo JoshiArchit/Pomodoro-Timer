@@ -31,25 +31,24 @@ class ConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
     
     // MARK: - Send
     
-    func sendTimerState(_ state: PomodoroState) {
+    /// Sends the timer state and settings together as one fresh snapshot.
+    /// Merging single keys into the previously sent context left the other key
+    /// stale (e.g. a settings send re-broadcasting a long-finished session),
+    /// so the full context is always rebuilt from the current state.
+    func sendFullContext(_ state: PomodoroState) {
         guard WCSession.default.activationState == .activated else { return }
-        guard let encoded = try? JSONEncoder().encode(TimerStatePayload(from: state)) else { return }
-        var context = WCSession.default.applicationContext
-        context[ConnectivityKey.timerState] = encoded
+        guard let timerData = try? JSONEncoder().encode(TimerStatePayload(from: state)),
+              let settingsData = try? JSONEncoder().encode(state.settings) else { return }
+        let context: [String: Any] = [
+            ConnectivityKey.timerState: timerData,
+            ConnectivityKey.settings: settingsData,
+        ]
         try? WCSession.default.updateApplicationContext(context)
     }
 
     func sendNotificationDismiss(id: String) {
         guard WCSession.default.activationState == .activated else { return }
         WCSession.default.transferUserInfo([ConnectivityKey.dismissNotification: id])
-    }
-
-    func sendSettings(_ settings: PomodoroSettings) {
-        guard WCSession.default.activationState == .activated else { return }
-        guard let encoded = try? JSONEncoder().encode(settings) else { return }
-        var context = WCSession.default.applicationContext
-        context[ConnectivityKey.settings] = encoded
-        try? WCSession.default.updateApplicationContext(context)
     }
     
     // MARK: - WCSessionDelegate
@@ -58,6 +57,11 @@ class ConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
                  activationDidCompleteWith activationState: WCSessionActivationState,
                  error: Error?) {
         print("WCSession activated: \(activationState)")
+        guard activationState == .activated else { return }
+        // Contexts delivered while this app wasn't running don't trigger
+        // didReceiveApplicationContext — replay the last one so launching the
+        // app picks up whatever the peer did in the meantime.
+        processApplicationContext(session.receivedApplicationContext)
     }
     
     // iOS only — required delegate methods
@@ -79,6 +83,10 @@ class ConnectivityManager: NSObject, ObservableObject, WCSessionDelegate {
 
     func session(_ session: WCSession,
                  didReceiveApplicationContext applicationContext: [String: Any]) {
+        processApplicationContext(applicationContext)
+    }
+
+    private func processApplicationContext(_ applicationContext: [String: Any]) {
         DispatchQueue.main.async {
             if let data = applicationContext[ConnectivityKey.timerState] as? Data,
                let payload = try? JSONDecoder().decode(TimerStatePayload.self, from: data) {

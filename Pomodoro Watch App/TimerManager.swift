@@ -18,10 +18,12 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
     @Published var state = PomodoroState() {
         didSet {
             if oldValue.settings != state.settings {
-                saveSettings()
+                // Fix up timeRemaining before saving so the snapshot sent to
+                // the peer already carries the corrected value.
                 if !state.isRunning && state.phaseEndDate == nil {
                     state.timeRemaining = state.totalDuration()
                 }
+                saveSettings()
             }
         }
     }
@@ -49,12 +51,18 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         observeConnectivity()
     }
 
+    deinit {
+        displayTimer?.invalidate()
+    }
+
     // MARK: - Timer Control
 
     func start() {
         state.phaseEndDate = Date().addingTimeInterval(state.timeRemaining)
         state.isRunning = true
         startExtendedSession()
+        scheduleCompletionNotification(for: state.phase, id: state.sessionID.uuidString,
+                                       at: state.phaseEndDate!)
         syncTimerState()
         startDisplayTimer()
     }
@@ -65,6 +73,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         }
         state.phaseEndDate = nil
         state.isRunning = false
+        cancelPendingCompletionNotification(id: state.sessionID.uuidString)
         stopDisplayTimer()
         syncTimerState()
     }
@@ -130,9 +139,14 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         state.isRunning = false
         stopDisplayTimer()
         WKInterfaceDevice.current().play(.notification)
-        let notifID = state.sessionID.uuidString
-        lastScheduledNotifID = notifID
-        scheduleNotification(for: state.phase, id: notifID)
+        // The completion notification was scheduled when the phase started.
+        // A natural completion lets it fire (it may already have, if the app
+        // was in the background); a skip means it must not fire at all.
+        if wasSkipped {
+            cancelPendingCompletionNotification(id: completingSessionID.uuidString)
+        } else {
+            lastScheduledNotifID = completingSessionID.uuidString
+        }
         state.advance()
         syncTimerState()
     }
@@ -172,7 +186,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         guard let encoded = try? JSONEncoder().encode(state.settings) else { return }
         UserDefaults.standard.set(encoded, forKey: settingsKey)
         guard !isReceivingRemoteUpdate else { return }
-        connectivity.sendSettings(state.settings)
+        connectivity.sendFullContext(state)
     }
 
     private func loadSettings() {
@@ -197,7 +211,9 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
 
     // MARK: - Notifications
 
-    private func scheduleNotification(for phase: Phase, id: String) {
+    /// Scheduled up front for the phase's end date so it still fires when the
+    /// app is suspended in the background at completion time.
+    private func scheduleCompletionNotification(for phase: Phase, id: String, at endDate: Date) {
         let content = UNMutableNotificationContent()
         content.sound = .default
 
@@ -213,14 +229,26 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
             content.body = "Ready for another round?"
         }
 
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+        let interval = max(endDate.timeIntervalSinceNow, 0.1)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
         let request = UNNotificationRequest(identifier: id, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
+        lastScheduledNotifID = id
+    }
+
+    private func cancelPendingCompletionNotification(id: String) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
+        if lastScheduledNotifID == id {
+            lastScheduledNotifID = nil
+        }
     }
 
     func acknowledgePhaseCompletion() {
         alertDismissTrigger += 1
         if let id = lastScheduledNotifID {
+            // The notification may still be pending if the user acknowledges
+            // the in-app alert in the instant before it fires.
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
             UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [id])
             connectivity.sendNotificationDismiss(id: id)
             lastScheduledNotifID = nil
@@ -249,8 +277,10 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
                 guard let self else { return }
                 guard settings != state.settings else { return }
                 isReceivingRemoteUpdate = true
+                // The state didSet resets timeRemaining to the new duration of
+                // the *current* phase when idle, and leaves an in-progress
+                // countdown untouched — same as a local settings change.
                 state.settings = settings
-                state.timeRemaining = settings.focusDuration
                 isReceivingRemoteUpdate = false
             }
             .store(in: &cancellables)
@@ -260,6 +290,11 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
             .sink { [weak self] payload in
                 guard let self else { return }
                 isReceivingRemoteUpdate = true
+                // If the peer paused or ended the running session early, our
+                // locally scheduled completion notification no longer applies.
+                if let endDate = state.phaseEndDate, endDate > Date() {
+                    cancelPendingCompletionNotification(id: state.sessionID.uuidString)
+                }
                 state.phase = payload.phase
                 state.sessionsCompleted = payload.sessionsCompleted
                 state.isRunning = payload.isRunning
@@ -270,7 +305,14 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
                 } else {
                     state.timeRemaining = payload.timeRemaining
                 }
-                if payload.isRunning && payload.phaseEndDate != nil {
+                if payload.isRunning, let endDate = payload.phaseEndDate, endDate > Date() {
+                    // Mirror the peer's schedule so this device also notifies
+                    // at phase end even if it gets suspended.
+                    scheduleCompletionNotification(for: payload.phase,
+                                                   id: payload.sessionID.uuidString,
+                                                   at: endDate)
+                    startDisplayTimer()
+                } else if payload.isRunning && payload.phaseEndDate != nil {
                     startDisplayTimer()
                 } else {
                     stopDisplayTimer()
@@ -282,6 +324,7 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
         ConnectivityManager.shared.$receivedDismissID
             .compactMap { $0 }
             .sink { [weak self] id in
+                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
                 UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [id])
                 self?.alertDismissTrigger += 1
             }
@@ -290,6 +333,6 @@ class TimerManager: NSObject, ObservableObject, WKExtendedRuntimeSessionDelegate
 
     private func syncTimerState() {
         guard !isReceivingRemoteUpdate else { return }
-        connectivity.sendTimerState(state)
+        connectivity.sendFullContext(state)
     }
 }
