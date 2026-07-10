@@ -20,15 +20,18 @@ public struct ProgressRing: View {
     }
     
     public var body: some View {
+        // Out-of-range values (e.g. timeRemaining briefly exceeding the phase
+        // duration after a settings change) would produce an invalid trim.
+        let clamped = min(max(progress, 0), 1)
         ZStack {
             Circle()
                 .stroke(color.opacity(0.2), lineWidth: lineWidth)
-            
+
             Circle()
-                .trim(from: 1 - progress, to: 1)
+                .trim(from: 1 - clamped, to: 1)
                 .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
-                .animation(.linear(duration: 1), value: progress)
+                .animation(.linear(duration: 1), value: clamped)
         }
     }
 }

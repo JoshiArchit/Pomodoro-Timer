@@ -6,6 +6,7 @@
 //
 
 import Testing
+internal import PomodoroCore
 @testable import PomodoroWatchApp
 
 struct PomodoroStateTests {
