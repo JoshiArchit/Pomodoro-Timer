@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_16.app
+
+      - name: Show build environment
+        run: |
+          xcodebuild -version
+          xcrun simctl list devicetypes | grep Watch
+
+      - name: Install xcpretty
+        run: gem install xcpretty
+
+      - name: Show available simulators
+        run: xcrun simctl list devicetypes | grep Watch
+
+      - name: Install watchOS simulator
+        run: |
+          xcodebuild -downloadPlatform watchOS
+
+      - name: Run unit tests
+        run: |
+          xcodebuild test \
+            -project PomodoroTimer.xcodeproj \
+            -scheme "Pomodoro Watch App" \
+            -destination 'platform=watchOS Simulator,name=Apple Watch Series 10 (46mm),OS=latest' \
+            -only-testing:PomodoroWatchAppTests \
+            | xcpretty
+
+      - name: Run UI tests
+        run: |
+          xcodebuild test \
+            -project PomodoroTimer.xcodeproj \
+            -scheme "Pomodoro Watch App" \
+            -destination 'platform=watchOS Simulator,name=Apple Watch Series 10 (46mm),OS=latest' \
+            -only-testing:PomodoroWatchAppUITests \
+            | xcpretty
